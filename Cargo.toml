@@ -1,0 +1,17 @@
+[package]
+name = "watchrs"
+version = "0.1.0"
+authors = ["Michael Habib <mhabib@pixability.com>"]
+edition = "2018"
+
+[lib]
+name = "watchrs"
+
+[dependencies]
+rusoto_core = "0.37.0"
+rusoto_cloudwatch = "0.37.0"
+rusoto_events = "0.37.0"
+rusoto_sns = "0.37.0"
+chrono = "0.4.6"
+env_logger = "0.6.1"
+log = "0.4.6"
