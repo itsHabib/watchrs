@@ -1,11 +1,27 @@
 [package]
 name = "watchrs"
 version = "0.1.0"
+
 authors = ["Michael Habib <mhabib@pixability.com>"]
 edition = "2018"
 
+description = "Crate that aids in monitoring and setting up alerts for AWS Batch Jobs."
+documentation = "https://docs.rs/watchrs"
+homepage = "https://github.com/itsHabib/watchrs"
+repository = "https://github.com/itsHabib/watchrs.git"
+readme = "README.md"
+
+keywords = ["aws", "batch", "cloudwatch-events", "sns"]
+
+license = "MIT"
+
+[badges]
+travis-ci = { repository = "itshabib/watchrs" }
+maintenance = { status = "experimental" }
+
 [lib]
 name = "watchrs"
+path = "src/lib.rs"
 
 [dependencies]
 rusoto_core = "0.37.0"
