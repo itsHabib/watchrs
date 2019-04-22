@@ -17,7 +17,7 @@ license = "MIT"
 
 [badges]
 travis-ci = { repository = "itshabib/watchrs" }
-maintenance = { status = "experimental" }
+maintenance = { status = "passively-maintained" }
 
 [lib]
 name = "watchrs"
