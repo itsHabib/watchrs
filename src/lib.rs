@@ -1,4 +1,8 @@
-//! `watchrs` is a crate that aids in monitoring and setting up alerts for AWS Batch Jobs.
+#![deny(missing_docs)]
+
+//! # watchrs
+//!
+//! The `watchrs` crate aids in monitoring and setting up alerts for AWS Batch Jobs.
 //!
 //! # Examples
 //!
@@ -29,7 +33,7 @@
 //!     })
 //!     .expect("failed to create alerting system");
 //!```
-#![deny(missing_docs)]
+
 
 use log::{error, info};
 use rusoto_core::region::Region;
