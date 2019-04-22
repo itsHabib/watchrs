@@ -13,21 +13,21 @@ readme = "README.md"
 
 keywords = ["aws", "batch", "cloudwatch-events", "sns"]
 
-license = "MIT"
+license = "MIT/APACHE"
 
 [badges]
 travis-ci = { repository = "itshabib/watchrs" }
-maintenance = { status = "experimental" }
+maintenance = { status = "passively-maintained" }
 
 [lib]
 name = "watchrs"
 path = "src/lib.rs"
 
 [dependencies]
-rusoto_core = "0.37.0"
-rusoto_cloudwatch = "0.37.0"
-rusoto_events = "0.37.0"
-rusoto_sns = "0.37.0"
+rusoto_core = "0.38.0"
+rusoto_cloudwatch = "0.38.0"
+rusoto_events = "0.38.0"
+rusoto_sns = "0.38.0"
 chrono = "0.4.6"
 env_logger = "0.6.1"
 log = "0.4.6"
