@@ -4,27 +4,30 @@
 //!
 //! ## Setting Up Alerts For Batch Job State Changes
 //! ```rust, no_run
-//! # use watchrs::Watcher;
+//! use watchrs::Watcher;
 //!
-//! let mut watcher = Watcher::default();
 //! // First create and subscribe to a topic
-//! watcher.subscribe("email@example.com".to_owned(), None)
+//! let watcher = Watcher::default();
+//! watcher
+//!     .subscribe("michaelhabib1868@gmail.com".to_owned(), None)
 //!     .and_then(|(topic_arn, _)| {
-//!         watcher.create_job_watcher_rule(
-//!             "my_batch_job_rule".to_owned(),
-//!              true,
-//!              Some("watch failed jobs".to_owned()),
-//!              Some("FAILED".to_owned()),
-//!              Some("queuearn1234".to_owned()),
-//!              None,
-//!        ).map(|rule_name| {
-//!            (topic_arn, rule_name)
-//!        })
+//!         watcher
+//!             .create_job_watcher_rule(
+//!                 "my_batch_job_rule".to_owned(),
+//!                 // enable?
+//!                 true,
+//!                 Some("watch failed jobs".to_owned()),
+//!                 Some(vec!["FAILED".to_owned(), "RUNNABLE".to_owned()]),
+//!                 Some(vec!["JOB_QUEUE_ARN".to_owned()]),
+//!                 Some(vec!["JOB_DEFINITION_NAME".to_owned()])
+//!             )
+//!             .map(|rule_name| (topic_arn, rule_name))
 //!     })
-//!     .and_then(|(topic_arn, rule_name)| {
-//!         // create target
-//!         watcher.create_sns_target(rule_name, topic_arn)
-//! });
+//!       .and_then(|(topic_arn, rule_name)| {
+//!            // create target
+//!            watcher.create_sns_target(rule_name, topic_arn)
+//!     })
+//!     .expect("failed to create alerting system");
 #![deny(missing_docs)]
 
 use log::{error, info};
@@ -35,6 +38,7 @@ use rusoto_events::{
 use rusoto_sns::{
     CreateTopicInput, DeleteTopicInput, Sns, SnsClient, SubscribeInput, UnsubscribeInput,
 };
+use std::collections::HashMap;
 
 use chrono::prelude::*;
 use serde::Serialize;
@@ -59,21 +63,22 @@ pub enum WatchError {
 #[derive(Hash, Eq, PartialEq, Debug, Serialize)]
 struct BatchRuleDetails {
     #[serde(skip_serializing_if = "Option::is_none")]
-    status: Option<String>,
+    #[serde(rename = "status")]
+    statuses: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "jobName")]
-    job_name: Option<String>,
+    job_names: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "jobQueue")]
-    queue_arn: Option<String>,
+    job_queues: Option<Vec<String>>,
 }
 
 impl Default for BatchRuleDetails {
     fn default() -> Self {
         BatchRuleDetails {
-            status: None,
-            job_name: None,
-            queue_arn: None,
+            statuses: None,
+            job_names: None,
+            job_queues: None,
         }
     }
 }
@@ -177,13 +182,13 @@ impl Watcher {
     }
     /// Creates a Cloudwatch Event Rule that watches for AWS Batch job state changes.
     ///
-    /// You can create a more restrictive filter expression by using the status, queue_arn, or
+    /// You can create a more restrictive filter expression by using the status, job_queues, or
     /// job_name fields. The rule created will contain these fields in a details struct. An example of
     /// a `details` field looks like below. You can get more info on creating rule expressions for
     /// batch jobs [here](https://docs.aws.amazon.com/batch/latest/userguide/batch_cwe_events.html).
     ///
     ///```json
-    /// "details": {
+    /// "detail": {
     ///     "jobName": "event-test",
     ///     "jobId": "4c7599ae-0a82-49aa-ba5a-4727fcce14a8",
     ///     "jobQueue": "arn:aws:batch:us-east-1:aws_account_id:job-queue/HighPriority",
@@ -197,7 +202,7 @@ impl Watcher {
     ///     "my_batch_job_rule".to_owned(),
     ///     true,
     ///     Some("watch failed jobs".to_owned()),
-    ///     Some("FAILED".to_owned()),
+    ///     Some(vec!["FAILED".to_owned()]),
     ///     None,
     ///     None).unwrap();
     /// ```
@@ -206,17 +211,17 @@ impl Watcher {
         rule_name: String,
         enable: bool,
         rule_description: Option<String>,
-        status: Option<String>,
-        queue_arn: Option<String>,
-        job_name: Option<String>,
+        statuses: Option<Vec<String>>,
+        job_queues: Option<Vec<String>>,
+        job_names: Option<Vec<String>>,
     ) -> Result<String, WatchError> {
         let events_client = CloudWatchEventsClient::new(Region::default());
         let enable_str = if enable { "ENABLED" } else { "DISABLED" };
 
         let rule_details = BatchRuleDetails {
-            status,
-            queue_arn,
-            job_name,
+            statuses,
+            job_queues,
+            job_names,
         };
 
         let details_json = serde_json::to_string(&rule_details);
@@ -227,26 +232,29 @@ impl Watcher {
             ));
         }
 
-        let mut event_pattern = r#"{{
+        let mut event_pattern = r#"
         "detail-type": [
             "Batch Job State Change"
         ],
         "source": [
             "aws.batch"
-        ]"#
+        ]
+        "#
         .to_owned();
 
         // only add the details str if its not empty. AWS does not allow empty fields.
         if BatchRuleDetails::default() != rule_details {
             event_pattern = format!(
                 r#"{{
-            {},pass empty string nothing rust
-            "details": {}
-        }}
-        "#,
+                    {},
+                    "detail": {}
+                    }}
+            "#,
                 event_pattern,
-                details_json.expect("err getting details json")
+                details_json.expect("err with details json")
             );
+        } else {
+            event_pattern = format!("{{{}}}", event_pattern);
         }
 
         match events_client
@@ -255,6 +263,7 @@ impl Watcher {
                 description: rule_description,
                 state: Some(enable_str.to_owned()),
                 event_pattern: Some(event_pattern),
+                role_arn: None,
                 ..PutRuleRequest::default()
             })
             .sync()
@@ -345,14 +354,58 @@ impl Watcher {
         // add watchrs + date
         // further limit to 256 characters for the topic name limit
         let topic_name = &format!("watchrs_{}_{}_{}_{}", year, month, day, hour).to_owned();
+        let mut attributes = HashMap::new();
+        let sns_access_policy = format!(
+            r#"
+        {{
+            "Id": "AWSSNSCWEIntegration",
+            "Statement": [
+                {{
+                    "Action": [
+                        "SNS:GetTopicAttributes",
+                        "SNS:SetTopicAttributes",
+                        "SNS:AddPermission",
+                        "SNS:RemovePermission",
+                        "SNS:DeleteTopic",
+                        "SNS:Subscribe",
+                        "SNS:ListSubscriptionsByTopic",
+                        "SNS:Publish",
+                        "SNS:Receive"
+                    ],
+                    "Effect": "Allow",
+                    "Principal": {{
+                        "AWS": "*"
+                    }},
+                    "Resource": "arn:aws:sns:{0}:*:{1}",
+                    "Sid": "AWSSNSAccess"
+                }},
+                {{
+                    "Sid": "PublishEventsToSNS",
+                    "Effect": "Allow",
+                    "Principal": {{
+                        "Service": "events.amazonaws.com"
+                     }},
+                    "Action": "sns:Publish",
+                    "Resource": "arn:aws:sns:{0}:*:{1}"
+                }}
+            ],
+            "Version": "2008-10-17"
+        }}"#,
+            self.region.name(),
+            topic_name.clone()
+        );
+
+        // TODO: Fix this when the bug in rusoto is fixed. or fix rusoto yourself!
+        attributes.insert(sns_access_policy.to_owned(), "Policy".to_owned());
+
         sns_client
             .create_topic(CreateTopicInput {
-                attributes: None,
+                attributes: Some(attributes),
                 name: topic_name.to_owned(),
             })
             .sync()
             .map_err(|err| {
-                error!("error creating topic: {}", err);
+                error!("error creating topic: {:?}", err);
                 WatchError::SNSTopic(err.to_string())
             })
             .and_then(|resp| {
@@ -369,7 +422,7 @@ impl Watcher {
     fn subscribe_email(&self, topic_arn: String, email: String) -> Result<String, WatchError> {
         let sns_client = SnsClient::new(Region::default());
         let sub_input = SubscribeInput {
-            protocol: "email-json".to_owned(),
+            protocol: "email".to_owned(),
             endpoint: Some(email.clone()),
             topic_arn: topic_arn.clone(),
             ..SubscribeInput::default()
