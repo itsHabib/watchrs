@@ -13,7 +13,7 @@ readme = "README.md"
 
 keywords = ["aws", "batch", "cloudwatch-events", "sns"]
 
-license = "MIT"
+license = "MIT/APACHE"
 
 [badges]
 travis-ci = { repository = "itshabib/watchrs" }

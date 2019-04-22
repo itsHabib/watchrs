@@ -28,6 +28,7 @@
 //!            watcher.create_sns_target(rule_name, topic_arn)
 //!     })
 //!     .expect("failed to create alerting system");
+//!```
 #![deny(missing_docs)]
 
 use log::{error, info};
