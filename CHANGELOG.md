@@ -4,6 +4,6 @@
 ## Release Notes
 Initial cargo release!
 
-## v0.1.1 [2019-04-22]
+## v0.2.0 [2019-04-23]
 ## Fixes
 - Actually use the region passed in
