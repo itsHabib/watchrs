@@ -6,6 +6,9 @@
 
 `watchrs` is a crate that aids in monitoring and setting up alerts for AWS Batch Jobs.
 
+**Note: This is still under development and I would not consider it to be production
+ready yet.**
+
 ## Examples
 
 ### Setting Up Alerts For Batch Job State Changes
