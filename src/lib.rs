@@ -34,7 +34,6 @@
 //!     .expect("failed to create alerting system");
 //!```
 
-
 use log::{error, info};
 use rusoto_core::region::Region;
 use rusoto_events::{
@@ -149,7 +148,7 @@ impl Watcher {
         delete_topic: bool,
         topic_arn: Option<String>,
     ) -> Result<(), WatchError> {
-        let sns_client = SnsClient::new(Region::default());
+        let sns_client = SnsClient::new(self.region.clone());
 
         // Error case, we cant delete a topic we dont have an arn for
         if delete_topic && topic_arn.is_none() {
@@ -220,7 +219,7 @@ impl Watcher {
         job_queues: Option<Vec<String>>,
         job_names: Option<Vec<String>>,
     ) -> Result<String, WatchError> {
-        let events_client = CloudWatchEventsClient::new(Region::default());
+        let events_client = CloudWatchEventsClient::new(self.region.clone());
         let enable_str = if enable { "ENABLED" } else { "DISABLED" };
 
         let rule_details = BatchRuleDetails {
@@ -301,7 +300,7 @@ impl Watcher {
         rule_name: String,
         topic_arn: String,
     ) -> Result<(), WatchError> {
-        let events_client = CloudWatchEventsClient::new(Region::default());
+        let events_client = CloudWatchEventsClient::new(self.region.clone());
 
         let now = Utc::now();
         let (year, month, day, hour) = (now.year(), now.month(), now.day(), now.hour());
@@ -350,14 +349,13 @@ impl Watcher {
 
     /// creates a topic
     fn create_topic(&self) -> Result<String, WatchError> {
-        let sns_client = SnsClient::new(Region::default());
+        let sns_client = SnsClient::new(self.region.clone());
 
         let now = Utc::now();
         let (year, month, day, hour) = (now.year(), now.month(), now.day(), now.hour());
 
         // discard everything after @
         // add watchrs + date
-        // further limit to 256 characters for the topic name limit
         let topic_name = &format!("watchrs_{}_{}_{}_{}", year, month, day, hour).to_owned();
         let mut attributes = HashMap::new();
         let sns_access_policy = format!(
@@ -401,6 +399,7 @@ impl Watcher {
         );
 
         // TODO: Fix this when the bug in rusoto is fixed. or fix rusoto yourself!
+        // Key and Val are reversed
         attributes.insert(sns_access_policy.to_owned(), "Policy".to_owned());
 
         sns_client
@@ -425,7 +424,7 @@ impl Watcher {
 
     /// Subscribes the given email to a topic
     fn subscribe_email(&self, topic_arn: String, email: String) -> Result<String, WatchError> {
-        let sns_client = SnsClient::new(Region::default());
+        let sns_client = SnsClient::new(self.region.clone());
         let sub_input = SubscribeInput {
             protocol: "email".to_owned(),
             endpoint: Some(email.clone()),
