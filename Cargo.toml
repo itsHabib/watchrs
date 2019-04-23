@@ -16,7 +16,7 @@ keywords = ["aws", "batch", "cloudwatch-events", "sns"]
 license = "MIT/Apache-2.0"
 
 [badges]
-travis-ci = { repository = "itshabib/watchrs" }
+travis-ci = { repository = "itsHabib/watchrs" }
 maintenance = { status = "passively-maintained" }
 
 [lib]
