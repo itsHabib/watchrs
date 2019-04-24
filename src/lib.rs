@@ -105,9 +105,9 @@ impl Default for Watcher {
 }
 
 impl Watcher {
-    /// Creates a topic when `topic_arn is None and suscribes to it using the email provided.
-    /// The method will skip the topic creation step whenever the `topic_arn` field `is_some()`,.
-    /// `subscribe` will return back a tuple of the form (topic_arn, subscribtion_arn).
+    /// Creates a topic when `topic_arn` is None and suscribes to it using the email provided.
+    /// The method will skip the topic creation step whenever the `topic_arn` field `is_some()`.
+    ///  `subscribe` will return back a tuple of the form (topic_arn, subscribtion_arn).
     ///
     /// ```rust,no_run
     /// # use watchrs::Watcher;
@@ -191,6 +191,8 @@ impl Watcher {
     /// a `details` field looks like below. You can get more info on creating rule expressions for
     /// batch jobs [here](https://docs.aws.amazon.com/batch/latest/userguide/batch_cwe_events.html).
     ///
+    /// ### Event Detail
+    ///
     ///```json
     /// "detail": {
     ///     "jobName": "event-test",
@@ -198,6 +200,8 @@ impl Watcher {
     ///     "jobQueue": "arn:aws:batch:us-east-1:aws_account_id:job-queue/HighPriority",
     /// }
     ///```
+    ///
+    ///### Example
     ///
     /// ```rust, no_run
     /// # use watchrs::Watcher;
@@ -284,7 +288,7 @@ impl Watcher {
     }
 
     /// Creates a Cloudwatch Event Target pointed to the SNS topic with the provided arn.
-    /// The method will also attach the rule `rule_name` to the event target.
+    /// The method will also attach the rule, `rule_name` to the event target.
     ///
     /// ```rust, no_run
     /// # use watchrs::Watcher;
