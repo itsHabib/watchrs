@@ -7,18 +7,18 @@
 //! # Examples
 //!
 //! ## Setting Up Alerts For Batch Job State Changes
+//!
 //! ```rust, no_run
+//!
 //! use watchrs::Watcher;
 //!
-//! // First create and subscribe to a topic
 //! let watcher = Watcher::default();
 //! watcher
-//!     .subscribe("michaelhabib1868@gmail.com".to_owned(), None)
+//!     .subscribe("youremail@here.com".to_owned(), None)
 //!     .and_then(|(topic_arn, _)| {
 //!         watcher
 //!             .create_job_watcher_rule(
 //!                 "my_batch_job_rule".to_owned(),
-//!                 // enable?
 //!                 true,
 //!                 Some("watch failed jobs".to_owned()),
 //!                 Some(vec!["FAILED".to_owned(), "RUNNABLE".to_owned()]),
@@ -28,11 +28,10 @@
 //!             .map(|rule_name| (topic_arn, rule_name))
 //!     })
 //!       .and_then(|(topic_arn, rule_name)| {
-//!            // create target
 //!            watcher.create_sns_target(rule_name, topic_arn)
 //!     })
 //!     .expect("failed to create alerting system");
-//!```
+//! ```
 
 use log::{error, info};
 use rusoto_core::region::Region;
@@ -105,9 +104,9 @@ impl Default for Watcher {
 }
 
 impl Watcher {
-    /// Creates a topic when `topic_arn is None and suscribes to it using the email provided.
-    /// The method will skip the topic creation step whenever the `topic_arn` field `is_some()`,.
-    /// `subscribe` will return back a tuple of the form (topic_arn, subscribtion_arn).
+    /// Creates a topic when `topic_arn` is None and suscribes to it using the email provided.
+    /// The method will skip the topic creation step whenever the `topic_arn` field `is_some()`.
+    ///  `subscribe` will return back a tuple of the form (topic_arn, subscribtion_arn).
     ///
     /// ```rust,no_run
     /// # use watchrs::Watcher;
@@ -141,7 +140,6 @@ impl Watcher {
     /// let mut watcher = Watcher::default();
     /// watcher.unsubscribe("validsubscriptionarn".to_owned(), false, None).unwrap();
     /// ```
-    // TODO: Consider making this take less params
     pub fn unsubscribe(
         &self,
         subscription_arn: String,
@@ -191,6 +189,8 @@ impl Watcher {
     /// a `details` field looks like below. You can get more info on creating rule expressions for
     /// batch jobs [here](https://docs.aws.amazon.com/batch/latest/userguide/batch_cwe_events.html).
     ///
+    /// ### Event Detail
+    ///
     ///```json
     /// "detail": {
     ///     "jobName": "event-test",
@@ -198,6 +198,8 @@ impl Watcher {
     ///     "jobQueue": "arn:aws:batch:us-east-1:aws_account_id:job-queue/HighPriority",
     /// }
     ///```
+    ///
+    ///### Example
     ///
     /// ```rust, no_run
     /// # use watchrs::Watcher;
@@ -284,7 +286,7 @@ impl Watcher {
     }
 
     /// Creates a Cloudwatch Event Target pointed to the SNS topic with the provided arn.
-    /// The method will also attach the rule `rule_name` to the event target.
+    /// The method will also attach the rule, `rule_name` to the event target.
     ///
     /// ```rust, no_run
     /// # use watchrs::Watcher;

@@ -1,6 +1,6 @@
 [package]
 name = "watchrs"
-version = "0.2.0"
+version = "0.2.1"
 
 authors = ["Michael Habib <mhabib@pixability.com>"]
 edition = "2018"
