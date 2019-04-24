@@ -7,18 +7,18 @@
 //! # Examples
 //!
 //! ## Setting Up Alerts For Batch Job State Changes
+//!
 //! ```rust, no_run
+//!
 //! use watchrs::Watcher;
 //!
-//! // First create and subscribe to a topic
 //! let watcher = Watcher::default();
 //! watcher
-//!     .subscribe("michaelhabib1868@gmail.com".to_owned(), None)
+//!     .subscribe("youremail@here.com".to_owned(), None)
 //!     .and_then(|(topic_arn, _)| {
 //!         watcher
 //!             .create_job_watcher_rule(
 //!                 "my_batch_job_rule".to_owned(),
-//!                 // enable?
 //!                 true,
 //!                 Some("watch failed jobs".to_owned()),
 //!                 Some(vec!["FAILED".to_owned(), "RUNNABLE".to_owned()]),
@@ -28,11 +28,10 @@
 //!             .map(|rule_name| (topic_arn, rule_name))
 //!     })
 //!       .and_then(|(topic_arn, rule_name)| {
-//!            // create target
 //!            watcher.create_sns_target(rule_name, topic_arn)
 //!     })
 //!     .expect("failed to create alerting system");
-//!```
+//! ```
 
 use log::{error, info};
 use rusoto_core::region::Region;
@@ -141,7 +140,6 @@ impl Watcher {
     /// let mut watcher = Watcher::default();
     /// watcher.unsubscribe("validsubscriptionarn".to_owned(), false, None).unwrap();
     /// ```
-    // TODO: Consider making this take less params
     pub fn unsubscribe(
         &self,
         subscription_arn: String,
