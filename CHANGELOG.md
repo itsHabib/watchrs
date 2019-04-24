@@ -11,3 +11,4 @@ Initial cargo release!
 ## v0.2.1 [2019-04-23]
 ## Fixes
 - Fix missing function docs bug (maybe)
+

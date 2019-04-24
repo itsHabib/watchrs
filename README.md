@@ -19,7 +19,7 @@ use watchrs::Watcher;
 // First create and subscribe to a topic
 let watcher = Watcher::default();
 watcher
-    .subscribe("michaelhabib1868@gmail.com".to_owned(), None)
+    .subscribe("youremail@example.com".to_owned(), None)
     .and_then(|(topic_arn, _)| {
         watcher
             .create_job_watcher_rule(
